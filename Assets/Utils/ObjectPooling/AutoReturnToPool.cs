@@ -38,7 +38,7 @@ namespace Utils.Pooling
 		{
 			CancelAsync();
 			_cts = new CancellationTokenSource();
-			DelayAndReturnAsync(delay, _cts.Token).SuppressCancellationThrow().Forget();
+			DelayAndReturnAsync(delay, _cts.Token).Forget();
 		}
 
 		private async UniTaskVoid DelayAndReturnAsync(float delay, CancellationToken cancellationToken)
