@@ -3,8 +3,6 @@ using UnityEngine;
 
 namespace Utils.Pooling
 {
-
-
 	namespace Utils.Pooling
 	{
 		public static class PoolingRootManager

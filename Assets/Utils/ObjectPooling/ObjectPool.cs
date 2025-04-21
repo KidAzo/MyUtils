@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Utils.Pooling
 {
@@ -25,7 +26,7 @@ namespace Utils.Pooling
 			Action<T> onGet = null,
 			Action<T> onRelease = null,
 			Action<T> onDestroy = null,
-			int defaultCapacity = 10,
+			int defaultCapacity = 0,
 			int? maxSize = null)
 		{
 			this.createFunc = createFunc ?? throw new ArgumentNullException(nameof(createFunc));
@@ -36,7 +37,7 @@ namespace Utils.Pooling
 			this.maxSize = maxSize;
 
 			pool = new Stack<T>(defaultCapacity);
-			
+
 			Prewarm(defaultCapacity);
 		}
 
@@ -45,7 +46,7 @@ namespace Utils.Pooling
 			for (int i = 0; i < count; i++)
 			{
 				var item = createFunc();
-				pool.Push(item);
+				ReturnToPool(item);
 			}
 		}
 
@@ -72,8 +73,15 @@ namespace Utils.Pooling
 				return;
 			}
 
-
 			pool.Push(item);
+		}
+
+		public void ReturnAllActive()
+		{
+			var activeCopy = ActiveObjects.ToArray();
+
+			foreach (var item in activeCopy)
+				ReturnToPool(item);
 		}
 
 		public void Clear(bool destroyObjects = false)
@@ -87,6 +95,6 @@ namespace Utils.Pooling
 			pool.Clear();
 			ActiveObjects.Clear();
 		}
-	}	
+	}
 }
 

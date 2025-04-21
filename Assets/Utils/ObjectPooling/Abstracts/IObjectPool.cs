@@ -4,6 +4,7 @@
 	{
 		T Get();
 		void ReturnToPool(T item);
+		void ReturnAllActive();
 	}
 }
 

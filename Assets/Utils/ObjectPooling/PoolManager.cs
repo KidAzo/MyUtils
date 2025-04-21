@@ -27,19 +27,23 @@ namespace Utils.Pooling
 		}
 #endif
 
-		public static void Register<T>(
+		public static IObjectPool<T> Register<T>(
 			Func<T> createFunc,
 			Action<T> onGet = null,
 			Action<T> onRelease = null,
 			Action<T> onDestroy = null,
-			int defaultCapacity = 10,
+			int defaultCapacity = 0,
 			int? maxSize = null
 		) where T : IPoolable
 		{
 			Type type = typeof(T);
 
-			if (_pools.ContainsKey(type))
-				throw new InvalidOperationException($"Pool for type {type.Name} is already registered!");
+			if (_pools.TryGetValue(type, out var existingPool))
+			{
+				Debug.LogWarning($"Pool for type {type.Name} already exists. Returning existing pool.");
+				ReturnAll<T>();
+				return (ObjectPool<T>)existingPool;
+			}
 
 			var pool = new ObjectPool<T>(
 				createFunc,
@@ -51,6 +55,8 @@ namespace Utils.Pooling
 			);
 
 			_pools[type] = pool;
+
+			return pool;
 		}
 
 		public static T Get<T>() where T : IPoolable
@@ -67,6 +73,15 @@ namespace Utils.Pooling
 				throw new InvalidOperationException($"No pool registered for type {typeof(T).Name}");
 
 			((IObjectPool<T>)pool).ReturnToPool(item);
+		}
+
+		public static void ReturnAll<T>() where T : IPoolable
+		{
+			if (_pools.TryGetValue(typeof(T), out var poolObj))
+			{
+				var pool = (IObjectPool<T>)poolObj;
+				pool.ReturnAllActive();
+			}
 		}
 
 		public static void Clear<T>() where T : IPoolable
